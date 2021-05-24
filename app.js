@@ -13,10 +13,11 @@ app.get("/", (req, res) => res.sendFile(path.join(__dirname, "index.html")));
 
 app.post("/api/auth", async (req, res, next) => {
   try {
+    const { username, password } = req.body;
+
+;
     const user = await User.authenticate(req.body);
-    console.log("user!!!!!!!!!!!!!!!!!!", user);
     const jwtUser = await jsonWebToken.sign({ userId: user }, SECRET);
-    console.log("jwt", jwtUser);
     res.send({ token: jwtUser });
   } catch (ex) {
     next(ex);
@@ -25,12 +26,12 @@ app.post("/api/auth", async (req, res, next) => {
 
 app.get("/api/auth", async (req, res, next) => {
   try {
-    const verified = await jsonWebToken.verify(
+    const { userId } = await jsonWebToken.verify(
       req.headers.authorization,
       SECRET
     );
-    console.log("headers", req.headers.authorization);
-    res.send(await User.byToken(verified));
+    const user = await User.byToken(userId);
+    res.send(user);
   } catch (ex) {
     next(ex);
   }
