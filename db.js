@@ -3,7 +3,7 @@ const { STRING } = Sequelize;
 const config = {
   logging: false,
 };
-const bcrypt = require('bcrypt')
+const bcrypt = require("bcrypt");
 
 if (process.env.LOGGING) {
   delete config.logging;
@@ -20,11 +20,11 @@ const User = conn.define("user", {
 
 const Note = conn.define("note", {
   text: STRING,
-})
+});
 
 User.beforeCreate(async (user) => {
-  const hashedPassword = await bcrypt.hash(user.password, 10)
-  user.password = hashedPassword
+  const hashedPassword = await bcrypt.hash(user.password, 10);
+  user.password = hashedPassword;
 });
 
 User.byToken = async (token) => {
@@ -44,13 +44,12 @@ User.byToken = async (token) => {
 };
 
 User.authenticate = async ({ username, password }) => {
-
   const user = await User.findOne({
     where: {
       username,
     },
   });
-   const verifiedUser =  await bcrypt.compare(password, user.password)
+  const verifiedUser = await bcrypt.compare(password, user.password);
 
   if (verifiedUser) {
     return user.id;
@@ -60,37 +59,36 @@ User.authenticate = async ({ username, password }) => {
   throw error;
 };
 
-User.hasMany(Note)
-Note.belongsTo(User)
+User.hasMany(Note);
+Note.belongsTo(User);
 
 const syncAndSeed = async () => {
   await conn.sync({ force: true });
   const credentials = [
-    { username: "lucy", password: 'lucy_pw' },
+    { username: "lucy", password: "lucy_pw" },
     { username: "moe", password: "moe_pw" },
     { username: "larry", password: "larry_pw" },
   ];
 
   const notes = [
-    {text: "hello how are you"},
-    {text: "space"},
-    {text: "random note"},
-    {text: "silly"},
-
-  ]
+    { text: "hello how are you" },
+    { text: "space" },
+    { text: "random note" },
+    { text: "silly" },
+  ];
 
   const [one, two, three, four] = await Promise.all(
     notes.map((note) => Note.create(note))
-  )
+  );
 
   const [lucy, moe, larry] = await Promise.all(
     credentials.map((credential) => User.create(credential))
   );
 
-  lucy.addNote(one)
-  lucy.addNote(two)
-  moe.addNote(three)
-  larry.addNote(four)
+  lucy.addNote(one);
+  lucy.addNote(two);
+  moe.addNote(three);
+  larry.addNote(four);
 
   return {
     users: {
@@ -105,5 +103,6 @@ module.exports = {
   syncAndSeed,
   models: {
     User,
+    Note,
   },
 };

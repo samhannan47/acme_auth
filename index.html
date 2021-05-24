@@ -60,6 +60,7 @@
           super();
           this.state = {
             auth: {},
+            notes: [],
           };
           this.signIn = this.signIn.bind(this);
           this.logout = this.logout.bind(this);
@@ -76,20 +77,25 @@
                 authorization: token,
               },
             });
-            this.setState({ auth: response.data });
+            const { id } = response.data;
+            const { data } = await axios.get(`/api/users/${id}/notes`);
+            this.setState({ auth: response.data, notes: data });
           }
         }
         componentDidMount() {
           this.attemptTokenLogin();
         }
+
         async signIn(credentials) {
           let response = await axios.post("/api/auth", credentials);
           const { token } = response.data;
           window.localStorage.setItem("token", token);
           this.attemptTokenLogin();
         }
+
         render() {
-          const { auth } = this.state;
+          const { auth, notes } = this.state;
+          console.log(this.state);
           const { signIn, logout } = this;
           if (!auth.id) {
             return <SignIn signIn={signIn} />;
@@ -98,6 +104,13 @@
               <div>
                 Welcome {auth.username}
                 <button onClick={logout}>Logout</button>
+                {notes.map((note) => {
+                  return (
+                    <ul key={note.id}>
+                      <li>{note.text}</li>
+                    </ul>
+                  );
+                })}
               </div>
             );
           }
